@@ -54,25 +54,28 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             random.choice(customParameterData[key]) for key in customParameterData
         ]
 
-        def func_to_fit(x, dim2, dim3, a, b, c):
-            return convert_array_to_binary_tree(solution_array, x, a, b, c, dim2, dim3)
+        def func_to_fit(data, a, b, c):
+            x, dim2, dim3 = data[0], data[1], data[2]
+            return convert_array_to_binary_tree(
+                solution_array, x, a, b, c, [dim2, dim3]
+            )
 
-        dim1_data = np.array([0])
+        dim1_data = np.zeros_like(xdata)
         if len(customParameterData) > 0:
-            dim1_data = customParameterData.values()[0]
-        dim2_data = np.array([0])
+            dim1_data = [*customParameterData.values()][0]
+        dim2_data = np.zeros_like(xdata)
         if len(customParameterData) > 1:
-            dim2_data = customParameterData.values()[1]
+            dim2_data = [*customParameterData.values()][1]
+
+        data = np.array([xdata, dim1_data, dim2_data])
 
         try:
             ptot, pcov = curve_fit(
                 func_to_fit,
-                xdata,
-                dim1_data,
-                dim2_data,
-                comparison_func(xdata, dim1_data, dim2_data),
+                data,
+                comparison_func(data),
             )
-            ydata = func_to_fit(xdata, *ptot)
+            ydata = func_to_fit(data, *ptot)
 
             if not ensure_tree_endings_end_with_constant(solution_array):
                 return 0
@@ -80,7 +83,7 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             node_endings = get_ending_indicies(solution_array)
             node_ending_count = len(node_endings)
 
-            diff = np.sum((ydata - comparison_func(xdata, dim1_data, dim2_data)))
+            diff = np.sum(np.abs(ydata - comparison_func(data)))
             if diff == 0:
                 return 10e5 - node_ending_count
             fitness = 1 / diff
@@ -139,3 +142,25 @@ def custom_crossover_func(parents, offspring_size, ga_instance):
     if not ensure_tree_endings_end_with_constant(offspring[1]):
         raise Exception("Invalid crossover")
     return np.array(offspring)
+
+
+if __name__ == "__main__":
+    from astropy import constants as c
+
+    def default_comparison_func(data):
+        x = data[0]
+        m1 = data[1]
+        m2 = data[2]
+        return c.G.value * (m1 * m2) / np.power(x, 2)
+
+    defaultCustomParametersData = {
+        "m1": np.linspace(0.8, 1.2, 10) * c.M_sun.value,
+        "m2": np.linspace(0.8, 1.2, 10) * c.M_earth.value,
+    }
+    xdata = np.linspace(0.8, 1.3, 10) * 14e9
+
+    fitness_func = fitness_function_factory(
+        default_comparison_func, xdata, defaultCustomParametersData
+    )
+
+    fitness_func([4, 6, 4, 2, 26, 24, 0, 22, 3, 26, 21, 26, 23, 0, 25], 1)

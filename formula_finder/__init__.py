@@ -3,7 +3,7 @@ from typing import List, Callable
 import sys
 import warnings
 
-sys.path.append("/home/james/Projects/Astrophysics/formula_finder/")
+# sys.path.append("/home/james/Projects/Astrophysics/formula_finder/")
 
 import numpy as np
 
@@ -23,12 +23,15 @@ def main(
     from astropy import units as u
     from formula_finder.variables import add_custom_variables
 
-    def default_comparison_func(x, m1, m2):
+    def default_comparison_func(data):
+        x = data[0]
+        m1 = data[1]
+        m2 = data[2]
         return c.G.value * (m1 * m2) / np.power(x, 2)
 
     defaultCustomParametersData = {
-        "m1": np.linspace(0.8, 1.2, 5) * c.M_sun.value,
-        "m2": np.linspace(0.8, 1.2, 5) * c.M_earth.value,
+        "m1": np.linspace(0.8, 1.2, 10) * c.M_sun.value,
+        "m2": np.linspace(0.8, 1.2, 10) * c.M_earth.value,
     }
     xdata = np.linspace(0.8, 1.3, 10) * 14e9
 
@@ -52,5 +55,6 @@ def main(
 
 
 if __name__ == "__main__":
-    with warnings.simplefilter("ignore"):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         main()

@@ -59,12 +59,12 @@ MATH_CONSTANT_KEYS = list(MATH_CONSTANT_NODES.keys())
 # list of astropy constants
 
 ASTRO_CONSTANT_NODES = {
-    "G": c.G.value,
-    "c": c.c.value,
-    "M_sun": c.M_sun.value,
-    "N_A": c.N_A.value,
-    "R": c.R.value,
-    "h": c.h.value,
+    # "G": c.G.value,
+    # "c": c.c.value,
+    # "M_sun": c.M_sun.value,
+    # "N_A": c.N_A.value,
+    # "R": c.R.value,
+    # "h": c.h.value,
 }
 ASTRO_CONSTANT_NODES_LIST = list(ASTRO_CONSTANT_NODES.keys())
 ASTRO_CONSTANT_INDICIES = [
