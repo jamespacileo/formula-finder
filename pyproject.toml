@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "formula_finder"
+version = "0.1.0"
+description = ""
+authors = ["James Pacileo <jamespaxi@gmail.com>"]
+
+[too.poetry.scripts]
+formula-finder = "formula_finder:main"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+jupyter = "^1.0.0"
+numpy = "^1.22.1"
+astropy = "^5.0"
+matplotlib = "^3.5.1"
+ipympl = "^0.8.6"
+einsteinpy = "^0.4.0"
+astroquery = "^0.4.5"
+Shapely = "^1.8.0"
+descartes = "^1.1.0"
+sympy = "^1.9"
+poisson-disc = "^0.2.1"
+galpy = "^1.7.1"
+gala = "^1.4.1"
+pygad = "^2.16.1"
+scipy = "^1.7.3"
+tqdm = "^4.62.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pytest-watch = "^4.2.0"
+black = "^21.12b0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

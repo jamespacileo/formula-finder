@@ -1,0 +1,12 @@
+{
+    // "python.autoComplete.extraPaths": [
+
+    //   "${workspaceFolder}/formula_finder",
+    //   "${workspaceFolder}"
+    // ],
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    // "python.pythonPath": "${workspaceFolder}",
+    // "python.pythonPath": "/home/james/.cache/pypoetry/virtualenvs/formula-finder-VzUa6P_7-py3.8/bin/python3",
+    "python.defaultInterpreterPath": "/home/james/.cache/pypoetry/virtualenvs/formula-finder-VzUa6P_7-py3.8/bin/python3"
+}
