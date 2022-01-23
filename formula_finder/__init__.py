@@ -16,7 +16,7 @@ def main(
     customParametersData: dict = None,
     total_population_size: int = 30,
     tree_depth: int = 3,
-    num_generations: int = 1000,
+    num_generations: int = 10000,
     xdata: List[int] = np.linspace(1, 10, 10),
 ):
     from astropy import constants as c
@@ -28,6 +28,9 @@ def main(
         m1 = data[1]
         m2 = data[2]
         return c.G.value * (m1 * m2) / np.power(x, 2)
+
+    def default_comparison_func(data):
+        return 1 / np.power(data[0], 2)
 
     defaultCustomParametersData = {
         "m1": np.linspace(0.8, 1.2, 10) * c.M_sun.value,

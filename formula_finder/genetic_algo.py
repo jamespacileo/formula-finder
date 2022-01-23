@@ -3,9 +3,9 @@ from typing import Callable, List
 import pygad
 import numpy as np
 from tqdm.notebook import trange, tqdm
+from formula_finder.algo_tree_helpers import convert_array_nodes_to_keys
 
 from formula_finder.binary_tree import (
-    convert_array_nodes_to_keys,
     number_of_nodes_for_tree,
 )
 from formula_finder.genetic_helpers import (
@@ -36,7 +36,7 @@ def run_genetic_algo(
     init_range_high = 20
 
     parent_selection_type = "sss"
-    keep_parents = 1
+    keep_parents = -1
 
     crossover_type = "single_point"
     mutation_type = custom_mutation

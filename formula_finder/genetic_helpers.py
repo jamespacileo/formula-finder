@@ -83,13 +83,20 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             node_endings = get_ending_indicies(solution_array)
             node_ending_count = len(node_endings)
 
-            diff = np.sum(np.abs(ydata - comparison_func(data)))
+            diff = np.sum(np.abs(ydata - comparison_func(data)) ** 2)
             if diff == 0:
                 return 10e5 - node_ending_count
             fitness = 1 / diff
 
             # return np.sqrt(np.diag(pcov))
         except RuntimeError:
+            fitness = 0
+        except ZeroDivisionError:
+            # TODO: Double check that this is ok to have
+            fitness = 0
+        except TypeError:
+            fitness = 0
+        except Exception:
             fitness = 0
         # print("fitness", fitness)
         if np.isnan(fitness):
@@ -102,22 +109,36 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
 def custom_mutation(offspring, ga_instance):
     # print("mutation")
     for chromosome_idx in range(offspring.shape[0]):
-        tree = offspring[chromosome_idx]
-        tree_leaf_count = number_of_leaf_nodes_for_tree(len(tree))
-        node_idx = random.randint(0, len(tree) - 1)
-        if node_idx < len(tree) - tree_leaf_count:
-            # change a leaf node
-            offspring[chromosome_idx][node_idx] = random.choice(ALL_INDICIES)
-        else:
-            # change a node
-            offspring[chromosome_idx][node_idx] = random.choice(VARIABLE_INDICIES)
+        for retry_count in range(10):
+            tree = offspring[chromosome_idx]
 
-        add_x_to_ending_indicies(offspring[chromosome_idx])
+            number_of_mutations = np.random.randint(1, 10)
+            chromosome = offspring[chromosome_idx]
+            for _ in range(number_of_mutations):
+                tree_leaf_count = number_of_leaf_nodes_for_tree(len(tree))
+                node_idx = random.randint(0, len(tree) - 1)
 
-        if not ensure_tree_endings_end_with_constant(
-            offspring[chromosome_idx].tolist()
-        ):
-            raise Exception("Invalid mutation")
+                if node_idx < len(tree) - tree_leaf_count:
+                    # change a leaf node
+                    chromosome[node_idx] = random.choice(ALL_INDICIES)
+                else:
+                    # change a node
+                    chromosome[node_idx] = random.choice(VARIABLE_INDICIES)
+
+            try:
+                chromosome = add_x_and_custom_variables_to_ending_indicies(chromosome)
+            except NotEnoughEndingIndiciesException as e:
+                # TODO: Better handling of cases where the tree is invalid
+                if retry_count > 5:
+                    raise Exception("Too many tries")
+
+            offspring[chromosome_idx] = chromosome
+
+            if not ensure_tree_endings_end_with_constant(
+                offspring[chromosome_idx].tolist()
+            ):
+                raise Exception("Invalid mutation")
+
     return offspring
 
 

@@ -6,6 +6,11 @@ from astropy import constants as c
 from astropy import units as u
 from typing import List
 
+from formula_finder.binary_tree import (
+    depth_of_tree,
+    number_of_leaf_nodes_in_binary_tree,
+)
+
 # list of functions for add, divide, multiply, subtract, mod, exponent, log, log10, sin, cos, tan, asin, acos, atan, sqrt, abs, and neg
 
 SYMBOL_NODES = {
@@ -26,7 +31,7 @@ MATH_FUNCTION_NODES = {
     "mod": lambda x, y: x % y,
     "exponent": lambda x, y: x ** y,
     "log": lambda x, y: np.log(x),
-    "log10": lambda x, y: np.log10(x),
+    # "log10": lambda x, y: np.log10(x),
     "sin": lambda x, y: np.sin(x),
     "cos": lambda x, y: np.cos(x),
     "tan": lambda x, y: np.tan(x),
@@ -41,6 +46,7 @@ MATH_FUNCTION_NODES_LIST = list(MATH_FUNCTION_NODES.keys())
 MATH_FUNCTION_INDICIES = [
     i + len(SYMBOL_INDICIES) for i in range(len(MATH_FUNCTION_NODES_LIST))
 ]
+MATH_FUNCTION_2_PARAM_INDICIES = MATH_FUNCTION_INDICIES[:6]
 MATH_FUNCTION_KEYS = list(MATH_FUNCTION_NODES.keys())
 
 # list of mathematical constants
@@ -98,6 +104,39 @@ VARIABLE_INDICIES = (
     + CUSTOM_VARIABLES_INDICIES
 )
 
+NODE_KEY_TO_INDEX = {}
+
+
+def get_index_from_node_key(key):
+    if key in SYMBOL_KEYS:
+        return SYMBOL_INDICIES[SYMBOL_KEYS.index(key)]
+    if key in MATH_FUNCTION_KEYS:
+        return MATH_FUNCTION_INDICIES[MATH_FUNCTION_KEYS.index(key)]
+    if key in MATH_CONSTANT_KEYS:
+        return MATH_CONSTANT_INDICIES[MATH_CONSTANT_KEYS.index(key)]
+    if key in ASTRO_CONSTANT_KEYS:
+        return ASTRO_CONSTANT_INDICIES[ASTRO_CONSTANT_KEYS.index(key)]
+    if key in CUSTOM_VARIABLES_KEYS:
+        return CUSTOM_VARIABLES_INDICIES[CUSTOM_VARIABLES_KEYS.index(key)]
+    raise Exception(f"Key {key} not in any node list")
+
+
+def build_node_key_to_index_mapping():
+    global NODE_KEY_TO_INDEX
+    for key in SYMBOL_KEYS:
+        NODE_KEY_TO_INDEX[key] = get_index_from_node_key(key)
+    for key in MATH_FUNCTION_KEYS:
+        NODE_KEY_TO_INDEX[key] = get_index_from_node_key(key)
+    for key in MATH_CONSTANT_KEYS:
+        NODE_KEY_TO_INDEX[key] = get_index_from_node_key(key)
+    for key in ASTRO_CONSTANT_KEYS:
+        NODE_KEY_TO_INDEX[key] = get_index_from_node_key(key)
+    for key in CUSTOM_VARIABLES_KEYS:
+        NODE_KEY_TO_INDEX[key] = get_index_from_node_key(key)
+
+
+build_node_key_to_index_mapping()
+
 
 def update_indicies():
     global ALL_INDICIES
@@ -130,6 +169,8 @@ def update_indicies():
         + CUSTOM_VARIABLES_INDICIES
     )
 
+    build_node_key_to_index_mapping()
+
 
 def add_custom_variables(variables: List[str]):
     global CUSTOM_VARIABLE_NODES
@@ -138,35 +179,37 @@ def add_custom_variables(variables: List[str]):
     update_indicies()
 
 
-def get_node_from_index(index):
+def get_node_from_index(node_index):
     """
     Returns a node from a given index
     """
-    if index < len(SYMBOL_NODES_LIST):
-        return "symbol", SYMBOL_NODES_LIST[index]
-    index -= len(SYMBOL_NODES_LIST)
-    if index < len(MATH_FUNCTION_NODES):
-        return "math_func", MATH_FUNCTION_NODES[list(MATH_FUNCTION_NODES.keys())[index]]
-    index -= len(MATH_FUNCTION_NODES)
-    if index < len(MATH_CONSTANT_NODES):
+    if node_index < len(SYMBOL_NODES_LIST):
+        return "symbol", SYMBOL_NODES_LIST[node_index]
+    node_index -= len(SYMBOL_NODES_LIST)
+    if node_index < len(MATH_FUNCTION_NODES):
+        return (
+            "math_func",
+            MATH_FUNCTION_NODES[list(MATH_FUNCTION_NODES.keys())[node_index]],
+        )
+    node_index -= len(MATH_FUNCTION_NODES)
+    if node_index < len(MATH_CONSTANT_NODES):
         return (
             "math_const",
-            MATH_CONSTANT_NODES[list(MATH_CONSTANT_NODES.keys())[index]],
+            MATH_CONSTANT_NODES[list(MATH_CONSTANT_NODES.keys())[node_index]],
         )
-    index -= len(MATH_CONSTANT_NODES)
-    if index < len(ASTRO_CONSTANT_NODES):
+    node_index -= len(MATH_CONSTANT_NODES)
+    if node_index < len(ASTRO_CONSTANT_NODES):
         return (
             "astro_const",
-            ASTRO_CONSTANT_NODES[list(ASTRO_CONSTANT_NODES.keys())[index]],
+            ASTRO_CONSTANT_NODES[list(ASTRO_CONSTANT_NODES.keys())[node_index]],
         )
-    index -= len(ASTRO_CONSTANT_NODES)
-    if index < len(CUSTOM_VARIABLE_NODES):
+    node_index -= len(ASTRO_CONSTANT_NODES)
+    if node_index < len(CUSTOM_VARIABLE_NODES):
         return (
             "custom_var",
-            CUSTOM_VARIABLE_NODES[list(CUSTOM_VARIABLE_NODES.keys())[index]],
+            CUSTOM_VARIABLE_NODES[list(CUSTOM_VARIABLE_NODES.keys())[node_index]],
         )
-    else:
-        raise Exception("Index out of range")
+    raise Exception(f"Index {node_index} out of range")
 
 
 # array to binary tree of nodes
@@ -243,6 +286,12 @@ def get_ending_indicies(array: np.array, array_index=0):
         return [array_index]
 
 
+def get_ending_indicies_that_are_not_leaf_nodes(array: np.array, array_index=0):
+    ending_indicies = get_ending_indicies(array, array_index=array_index)
+    leaf_count = number_of_leaf_nodes_in_binary_tree(depth_of_tree(len(array)))
+    return [index for index in ending_indicies if index < len(array) - leaf_count]
+
+
 def add_x_to_ending_indicies(tree):
     # make sure at least 1 ending indicies is x
     # print("tree", tree)
@@ -258,33 +307,65 @@ class NotEnoughEndingIndiciesException(Exception):
     pass
 
 
+def replace_ending_index_with_random_node(tree):
+    ending_indicies = get_ending_indicies_that_are_not_leaf_nodes(tree)
+    if len(ending_indicies) == 0:
+        raise NotEnoughEndingIndiciesException(f"{tree}")
+    random_index = random.choice(ending_indicies)
+    tree[random_index] = random.choice(MATH_FUNCTION_2_PARAM_INDICIES)
+    return tree
+
+
 def add_x_and_custom_variables_to_ending_indicies(tree):
     # make sure at least 1 ending indicies is x
     # print("tree", tree)
     ending_indicies = get_ending_indicies(tree)
-    if len(ending_indicies) < len(CUSTOM_VARIABLES_INDICIES) + 1:
-        raise NotEnoughEndingIndiciesException("Not enough ending indicies")
-    # print("ending_indicies", ending_indicies)
-    used_ending_indicies = []
-    available_ending_indicies = [
-        x for x in ending_indicies if x not in CUSTOM_VARIABLES_INDICIES + [0]
-    ]
+
+    # number of ending indicies that are not custom variables
+
+    # nodes
     variables_to_apply = [
-        x for x in CUSTOM_VARIABLES_INDICIES + [0] if x not in ending_indicies
+        x for x in CUSTOM_VARIABLES_INDICIES + [0] if x not in tree[ending_indicies]
     ]
+    # tree indicies
+    available_ending_indicies = [
+        x for x in ending_indicies if tree[x] not in CUSTOM_VARIABLES_INDICIES + [0]
+    ]
+    # print("variables_to_apply", variables_to_apply)
+
+    retries = 0
+    # add ending nodes to fit more custom variables
+    while len(available_ending_indicies) < len(variables_to_apply):
+        print("")
+        retries += 1
+        if retries > 5:
+            raise NotEnoughEndingIndiciesException("Not enough ending indicies")
+        tree = replace_ending_index_with_random_node(tree)
+        ending_indicies = get_ending_indicies(tree)
+        variables_to_apply = [
+            x for x in CUSTOM_VARIABLES_INDICIES + [0] if x not in tree[ending_indicies]
+        ]
+        available_ending_indicies = [
+            x for x in ending_indicies if x not in CUSTOM_VARIABLES_INDICIES + [0]
+        ]
+
+    # print("ending_indicies", ending_indicies)
+    # used_ending_indicies = []
     for variable in variables_to_apply:
-        if variable not in ending_indicies:
-            random_index = random.choice(available_ending_indicies)
+        if variable not in tree[ending_indicies]:
+            random_node_index = random.choice(available_ending_indicies)
+            random_index = available_ending_indicies.index(random_node_index)
             tree[random_index] = variable
-            available_ending_indicies.remove(random_index)
+            available_ending_indicies.remove(random_node_index)
 
     return tree
 
 
 if __name__ == "__main__":
-    print(CUSTOM_VARIABLES_INDICIES)
-    convert_array_to_binary_tree(np.array([4, 1, 3]), 1, 2, 3, 4, [29, 30])
-    add_x_to_ending_indicies(np.array([4, 1, 3]))
+    # print(CUSTOM_VARIABLES_INDICIES)
+    # convert_array_to_binary_tree(np.array([4, 1, 3]), 1, 2, 3, 4, [29, 30])
+    # add_x_to_ending_indicies(np.array([4, 1, 3]))
+    add_custom_variables(["m1", "m2"])
     add_x_and_custom_variables_to_ending_indicies(
-        np.array([5, 6, 2, 25, 0, 23, 11, 27, 0, 3, 26, 21, 2, 26, 2])
+        np.array([22, 14, 23, 14, 24, 20, 13, 23, 0, 23, 24, 24, 24, 22, 21])
     )
