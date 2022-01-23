@@ -43,6 +43,7 @@ def represent_formula_in_sympy(formula: np.array):
         Symbol("b"),
         Symbol("c"),
         [Symbol("m1"), Symbol("m2")],
+        use_sympy=True,
     )
     # return solve(expression)
 
@@ -122,9 +123,14 @@ def sympy_formula_to_tree(formula, tree=None, index=0, depth=0):
             sympy_formula_to_tree(second_arg, tree, index * 2 + 2, depth + 1)
     elif name == "Pow":
         first_arg, second_arg = formula.args
-        tree[index] = NODE_KEY_TO_INDEX["exponent"]
+        is_sqrt = second_arg.func.__name__ == "Half"
+        if is_sqrt:
+            tree[index] = NODE_KEY_TO_INDEX["sqrt"]
+        else:
+            tree[index] = NODE_KEY_TO_INDEX["power"]
         sympy_formula_to_tree(first_arg, tree, index * 2 + 1, depth + 1)
-        sympy_formula_to_tree(second_arg, tree, index * 2 + 2, depth + 1)
+        if not is_sqrt:
+            sympy_formula_to_tree(second_arg, tree, index * 2 + 2, depth + 1)
 
     elif name == "Symbol":
         symbol = formula.__str__()
@@ -156,6 +162,9 @@ def sympy_formula_to_tree(formula, tree=None, index=0, depth=0):
     elif name == "Abs":
         tree[index] = NODE_KEY_TO_INDEX["abs"]
         sympy_formula_to_tree(formula.args[0], tree, index * 2 + 1, depth + 1)
+    elif name == "exp":
+        tree[index] = NODE_KEY_TO_INDEX["exp"]
+        sympy_formula_to_tree(formula.args[0], tree, index * 2 + 1, depth + 1)
     else:
         print(name)
         pass
@@ -174,7 +183,9 @@ if __name__ == "__main__":
         SYMBOL_INDICIES,
         NODE_KEY_TO_INDEX,
     )
-    from sympy import Symbol, symbols
+    from sympy import Symbol, symbols, sqrt
+    import math
+    import numpy as np
 
     add_custom_variables(["m1", "m2"])
     # represent_formula_in_sympy(
@@ -182,7 +193,7 @@ if __name__ == "__main__":
     # )
     x, a, b, c, d, m1, m2 = symbols("x a b c d m1 m2")
     # expr = a * m1 * m2 / (x * x)
-    expr = -x
+    expr = sqrt(x)
     tree = sympy_formula_to_tree(expr)
     tree = pad_binary_tree_with_missing_nodes(tree)
     print_binary_tree(convert_array_nodes_to_keys(tree))

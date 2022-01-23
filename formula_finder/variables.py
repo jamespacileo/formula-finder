@@ -5,6 +5,7 @@ import random
 from astropy import constants as c
 from astropy import units as u
 from typing import List
+import sympy
 
 from formula_finder.binary_tree import (
     depth_of_tree,
@@ -29,7 +30,8 @@ MATH_FUNCTION_NODES = {
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
     "mod": lambda x, y: x % y,
-    "exponent": lambda x, y: x ** y,
+    "power": lambda x, y: x ** y,
+    "exp": lambda x, y: np.exp(x),
     "log": lambda x, y: np.log(x),
     # "log10": lambda x, y: np.log10(x),
     "sin": lambda x, y: np.sin(x),
@@ -42,6 +44,27 @@ MATH_FUNCTION_NODES = {
     "abs": lambda x, y: np.abs(x),
     "neg": lambda x, y: -x,
 }
+MATH_FUNCTION_NODES_USING_SYMPY = {
+    "add": lambda x, y: x + y,
+    "divide": lambda x, y: x / y,
+    "multiply": lambda x, y: x * y,
+    "subtract": lambda x, y: x - y,
+    "mod": lambda x, y: x % y,
+    "power": lambda x, y: x ** y,
+    "exp": lambda x, y: sympy.exp(x),
+    "log": lambda x, y: sympy.log(x),
+    # "log10": lambda x, y: sympy.log10(x),
+    "sin": lambda x, y: sympy.sin(x),
+    "cos": lambda x, y: sympy.cos(x),
+    "tan": lambda x, y: sympy.tan(x),
+    "asin": lambda x, y: sympy.asin(x),
+    "acos": lambda x, y: sympy.acos(x),
+    "atan": lambda x, y: sympy.atan(x),
+    "sqrt": lambda x, y: sympy.sqrt(x),
+    "abs": lambda x, y: sympy.Abs(x),
+    "neg": lambda x, y: -x,
+}
+
 MATH_FUNCTION_NODES_LIST = list(MATH_FUNCTION_NODES.keys())
 MATH_FUNCTION_INDICIES = [
     i + len(SYMBOL_INDICIES) for i in range(len(MATH_FUNCTION_NODES_LIST))
@@ -179,7 +202,7 @@ def add_custom_variables(variables: List[str]):
     update_indicies()
 
 
-def get_node_from_index(node_index):
+def get_node_from_index(node_index, use_sympy=False):
     """
     Returns a node from a given index
     """
@@ -187,6 +210,13 @@ def get_node_from_index(node_index):
         return "symbol", SYMBOL_NODES_LIST[node_index]
     node_index -= len(SYMBOL_NODES_LIST)
     if node_index < len(MATH_FUNCTION_NODES):
+        if use_sympy:
+            return (
+                "math_func",
+                MATH_FUNCTION_NODES_USING_SYMPY[
+                    list(MATH_FUNCTION_NODES_USING_SYMPY.keys())[node_index]
+                ],
+            )
         return (
             "math_func",
             MATH_FUNCTION_NODES[list(MATH_FUNCTION_NODES.keys())[node_index]],
@@ -213,11 +243,13 @@ def get_node_from_index(node_index):
 
 
 # array to binary tree of nodes
-def convert_array_to_binary_tree(array: List, x, a, b, c, symbols: List, array_index=0):
+def convert_array_to_binary_tree(
+    array: List, x, a, b, c, symbols: List, array_index=0, use_sympy=False
+):
     # print("array_index", array_index)
     index = array[array_index]
 
-    node_type, node = get_node_from_index(index)
+    node_type, node = get_node_from_index(index, use_sympy)
     if node_type == "symbol":
         if index == 0:
             return x
