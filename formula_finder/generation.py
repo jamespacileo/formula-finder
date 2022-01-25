@@ -36,7 +36,7 @@ def pick_action(depth: int, max_depth: int):
         return "add_variable"
     add_node_weights = np.linspace(1.0, 0.0, max_depth + 1) ** 2
     add_variable_weights = np.linspace(0.0, 1.0, max_depth + 1)
-    param_num_balance = np.array([0.8, 0.2])
+    param_num_balance = np.array([0.6, 0.4])
     add_2_param_weight, add_1_param_weight = param_num_balance * add_node_weights[depth]
     add_variable_weight = add_variable_weights[depth]
     weights = np.array([add_2_param_weight, add_1_param_weight, add_variable_weight])
@@ -45,6 +45,10 @@ def pick_action(depth: int, max_depth: int):
         ["add_node_2_param", "add_node_1_param", "add_variable"],
         p=weights,
     )
+
+
+def variable_tree_node_indicies(tree: list):
+    return [index for index, value in enumerate(tree) if value in VARIABLE_INDICIES]
 
 
 def generate_tree(
@@ -96,11 +100,15 @@ def generate_tree(
             tree[index] = choice
         else:
             tree[index] = np.random.choice(NON_REQUIRED_VARIABLE_INDICIES)
+
+    if depth == 0:
+        # Add x if missing
+        variable_indicies = variable_tree_node_indicies(tree)
+        has_x = 0 in variable_indicies
+        if not has_x:
+            tree[np.random.choice(variable_indicies)] = 0
+
     return tree
-
-
-def variable_tree_node_indicies(tree: list):
-    return [index for index, value in enumerate(tree) if value in VARIABLE_INDICIES]
 
 
 def tree_crossover(tree1, tree2):
@@ -144,8 +152,18 @@ def prune_chromosome(tree: list):
         chosen_index = np.random.choice(available_indicies[1:])
         # print("Prune: Yes", chosen_index)
         tree, _ = cut_tree_at_node_index(tree, chosen_index)
+        tree[chosen_index] = np.random.choice(VARIABLE_INDICIES)
         return tree
     return tree
+
+
+def scrable_variables(tree: list):
+    new_tree = tree.copy()
+    variable_indicies = variable_tree_node_indicies(tree)
+    values = new_tree[variable_indicies]
+    scrabled = np.random.shuffle(values)
+    new_tree[variable_indicies] = values
+    return new_tree
 
 
 def mutate_tree_node(tree: list):
@@ -169,9 +187,11 @@ def replace_random_variable_with_x(tree: list):
 def formula_mutation(offspring, ga_instance):
     for chromosome_idx in range(offspring.shape[0]):
         new_chromosome = prune_chromosome(offspring[chromosome_idx])
-        new_chromosome = mutate_tree_node(new_chromosome)
-        if np.random.choice([True, False]):
-            new_chromosome = replace_random_variable_with_x(new_chromosome)
+        # new_chromosome = mutate_tree_node(new_chromosome)
+        # if np.random.choice([True, False]):
+        #     new_chromosome = replace_random_variable_with_x(new_chromosome)
+        # if np.random.choice([True, False]):
+        #     new_chromosome = scrable_variables(new_chromosome)
         offspring[chromosome_idx] = new_chromosome
     return offspring
 
@@ -195,10 +215,10 @@ if __name__ == "__main__":
     for _ in range(1000):
         # print(pick_action(1, 3))
         tree1 = generate_tree(max_depth=3)
-        print(
-            tree1,
-            mutate_tree_node(tree1),
-        )
+        # print(
+        #     tree1,
+        #     mutate_tree_node(tree1),
+        # )
         # tree2 = generate_tree(max_depth=3)
         # parent, child = randomly_cut_tree_at_depth(tree, 1)
         # print(tree, parent, child)

@@ -7,6 +7,7 @@ from formula_finder.binary_tree import (
     number_of_leaf_nodes_for_tree,
 )
 from formula_finder.common_formulas import LIST_OF_COMMON_FORMULAS_AS_TREE
+from formula_finder.generation import variable_tree_node_indicies
 from formula_finder.simplify import (
     FormulaIsNotAllowedToBeANumber,
     simplify_formula_and_add_padding,
@@ -56,16 +57,24 @@ def generate_population(total_population_size, gene_size, use_common_formulas=Tr
     return population
 
 
-def fitness_function_factory(comparison_func, xdata, customParameterData: dict = {}):
-    def fitness_function(solution_array, solution_idx):
-        variables = [
-            random.choice(customParameterData[key]) for key in customParameterData
-        ]
+def fitness_function_factory(
+    comparison_func, xdata, dim1_data=None, dim2_data=None, dimension_names=["x"]
+):
+    if dim1_data is None:
+        dim1_data = np.zeros(xdata.shape)
+    if dim2_data is None:
+        dim2_data = np.zeros(xdata.shape)
 
+    data = np.array([xdata, dim1_data, dim2_data])
+
+    def fitness_function(solution_array, solution_idx):
         has_x = len([i for i in solution_array if i == 0]) > 0
 
         # does solution array contain 0?
         if not has_x:
+            return 0
+
+        if solution_array[0] in VARIABLE_INDICIES:
             return 0
 
         def func_to_fit(data, a, b, c):
@@ -73,15 +82,6 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             return convert_array_to_binary_tree(
                 solution_array, x, a, b, c, [dim2, dim3]
             )
-
-        dim1_data = np.zeros_like(xdata)
-        if len(customParameterData) > 0:
-            dim1_data = [*customParameterData.values()][0]
-        dim2_data = np.zeros_like(xdata)
-        if len(customParameterData) > 1:
-            dim2_data = [*customParameterData.values()][1]
-
-        data = np.array([xdata, dim1_data, dim2_data])
 
         try:
             ptot, pcov = curve_fit(
@@ -94,8 +94,9 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             # if not ensure_tree_endings_end_with_constant(solution_array):
             #     return 0
 
-            node_endings = get_ending_indicies(solution_array)
-            node_ending_count = len(node_endings)
+            # node_endings = get_ending_indicies(solution_array)
+            # node_endings = variable_tree_node_indicies(solution_array)
+            # node_ending_count = len(node_endings)
 
             non_blanks = non_blank_node_indicies(solution_array)
 
@@ -105,15 +106,15 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             fitness = 1 / diff
 
             # return np.sqrt(np.diag(pcov))
-        except RuntimeError:
-            fitness = 0
+        # except RuntimeError:
+        #     fitness = 0
         except ZeroDivisionError:
             # TODO: Double check that this is ok to have
             fitness = 0
-        except TypeError:
-            fitness = 0
-        except Exception:
-            fitness = 0
+        # except TypeError:
+        #     fitness = 0
+        # except Exception:
+        #     fitness = 0
         # print("fitness", fitness)
         if np.isnan(fitness):
             fitness = 0
@@ -213,7 +214,7 @@ if __name__ == "__main__":
     xdata = np.linspace(0.8, 1.3, 10) * 14e9
 
     fitness_func = fitness_function_factory(
-        default_comparison_func, xdata, defaultCustomParametersData
+        default_comparison_func, xdata, None, None, dimension_names=["r"]
     )
 
     fitness_func([4, 6, 4, 2, 26, 24, 0, 22, 3, 26, 21, 26, 23, 0, 25], 1)

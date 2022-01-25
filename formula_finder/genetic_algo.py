@@ -8,6 +8,7 @@ from formula_finder.algo_tree_helpers import convert_array_nodes_to_keys
 from formula_finder.binary_tree import (
     number_of_nodes_for_tree,
 )
+from formula_finder.common_formulas import LIST_OF_COMMON_FORMULAS_AS_TREE
 from formula_finder.generation import (
     formula_crossover,
     formula_mutation,
@@ -18,6 +19,7 @@ from formula_finder.genetic_helpers import (
     custom_mutation,
     fitness_function_factory,
 )
+from formula_finder.output import render_formula
 
 mutation_percent_genes = 10
 
@@ -29,8 +31,14 @@ def run_genetic_algo(
     num_generations: int = 100,
     xdata: List[int] = np.linspace(1, 10, 10),
     customParametersData: dict = None,
+    dim1_data: List[int] = None,
+    dim2_data: List[int] = None,
+    dimension_names: List[str] = None,
 ):
     num_genes = number_of_nodes_for_tree(tree_depth - 1)
+    # population = np.concatenate(
+    #     [generate_population(100, num_genes), LIST_OF_COMMON_FORMULAS_AS_TREE]
+    # )
     population = generate_population(100, num_genes)
     num_parents_mating = 50  # math.floor(total_population_size / 20)
 
@@ -46,7 +54,7 @@ def run_genetic_algo(
     mutation_type = formula_mutation
 
     fitness_function = fitness_function_factory(
-        comparison_func, xdata, customParametersData
+        comparison_func, xdata, dim1_data, dim2_data, dimension_names
     )
 
     t = tqdm(total=num_generations)
@@ -89,7 +97,17 @@ def run_genetic_algo(
 
     t.close()
 
-    return ga_instance
+    if dim1_data is None:
+        dim1_data = np.zeros(xdata.shape)
+    if dim2_data is None:
+        dim2_data = np.zeros(xdata.shape)
+    data = np.array([xdata, dim1_data, dim2_data])
+
+    # return ga_instance
+
+    rendered_formula = render_formula(ga_instance, data, comparison_func)
+
+    return ga_instance, rendered_formula
 
 
 if __name__ == "__main__":

@@ -18,6 +18,9 @@ def main(
     tree_depth: int = 4,
     num_generations: int = 10000,
     xdata: List[int] = np.linspace(1, 10, 10),
+    dim1_data: List[int] = None,
+    dim2_data: List[int] = None,
+    dimension_names: List[str] = ["x"],
 ):
     from astropy import constants as c
     from astropy import units as u
@@ -43,24 +46,44 @@ def main(
 
     if not comparison_func:
         comparison_func = default_comparison_func
-    if not customParametersData:
-        customParametersData = defaultCustomParametersData
+    # if not customParametersData:
+    #     customParametersData = defaultCustomParametersData
 
-    add_custom_variables(customParametersData.keys())
+    if len(dimension_names) > 1:
+        add_custom_variables(dimension_names[1:])
     from formula_finder.genetic_algo import run_genetic_algo
 
-    algo = run_genetic_algo(
+    return run_genetic_algo(
         comparison_func,
-        customParametersData=customParametersData,
+        # customParametersData=customParametersData,
         total_population_size=total_population_size,
         tree_depth=tree_depth,
         num_generations=num_generations,
         xdata=xdata,
+        dim1_data=dim1_data,
+        dim2_data=dim2_data,
+        dimension_names=dimension_names,
     )
-    return algo
+    # return algo
 
 
 if __name__ == "__main__":
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        main()
+
+        xdata = np.linspace(0.8, 1.3, 10)
+
+        def ydata(data):
+            return np.multiply(np.power(data[0], 3), np.sqrt(data[0]))
+            # return np.sqrt(data[0])
+            return np.add(4 / np.sqrt(data[0]), np.power(data[0], 3))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            g, sym = main(
+                num_generations=300,
+                comparison_func=ydata,
+                xdata=xdata,
+                # dimension_names=["r"],
+            )
+        print(sym)

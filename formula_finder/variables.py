@@ -26,40 +26,56 @@ SYMBOL_INDICIES = list(range(len(SYMBOL_NODES_LIST)))
 SYMBOL_KEYS = list(SYMBOL_NODES.keys())
 
 MATH_FUNCTION_NODES = {
+    # "add": lambda x, y: np.add(x, y),
+    # "divide": lambda x, y: np.divide(x, y),
+    # "multiply": lambda x, y: np.multiply(x, y),
+    # "subtract": lambda x, y: np.subtract(x, y),
+    # # "mod": lambda x, y: x % y,
     "add": lambda x, y: x + y,
     "divide": lambda x, y: x / y,
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
-    "mod": lambda x, y: x % y,
-    "square": lambda x: x ** 2,
-    "cube": lambda x: x ** 3,
+    # "mod": lambda x, y: x % y,
+    # "square": lambda x, y: np.power(x, 2),
+    # "cube": lambda x, y: np.power(x, 3),
+    # "neg": lambda x, y: np.negative(x),
+    # "add": lambda x, y: np.add(x, y),
+    # "divide": lambda x, y: np.divide(x, y),
+    # "multiply": lambda x, y: np.multiply(x, y),
+    # "subtract": lambda x, y: np.subtract(x, y),
+    # "mod": lambda x, y: x % y,
+    "square": lambda x, y: np.power(x, 2),  # 7
+    "cube": lambda x, y: np.power(x, 3),  # 8
+    "neg": lambda x, y: np.negative(x),  # 9
     # "power": lambda x, y: x ** y,
+    "sqrt": lambda x, y: np.sqrt(x),  # 10
     "exp": lambda x, y: np.exp(x),
-    "log": lambda x, y: np.log(x),
+    "log": lambda x, y: np.log(x),  # 12
     # "log10": lambda x, y: np.log10(x),
-    "sin": lambda x, y: np.sin(x),
+    "sin": lambda x, y: np.sin(x),  #
     "cos": lambda x, y: np.cos(x),
-    "cosh": lambda x, y: np.cosh(x),
+    "cosh": lambda x, y: np.cosh(x),  # 15
     "sinh": lambda x, y: np.sinh(x),
     "tan": lambda x, y: np.tan(x),
     "cot": lambda x, y: np.arctan(x),
-    "asin": lambda x, y: np.arcsin(x),
+    "asin": lambda x, y: np.arcsin(x),  # 19
     "acos": lambda x, y: np.arccos(x),
-    "atan": lambda x, y: np.arctan(x),
+    "atan": lambda x, y: np.arctan(x),  # 21
     "atanh": lambda x, y: np.arctanh(x),
     "sqrt": lambda x, y: np.sqrt(x),
     "abs": lambda x, y: np.abs(x),
-    "neg": lambda x, y: -x,
 }
 MATH_FUNCTION_NODES_USING_SYMPY = {
     "add": lambda x, y: x + y,
     "divide": lambda x, y: x / y,
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
-    "mod": lambda x, y: x % y,
-    "square": lambda x: x ** 2,
-    "cube": lambda x: x ** 3,
+    # "mod": lambda x, y: x % y,
+    "square": lambda x, y: x ** 2,
+    "cube": lambda x, y: x ** 3,
+    "neg": lambda x, y: -x,
     # "power": lambda x, y: x ** y,
+    "sqrt": lambda x, y: sympy.sqrt(x),
     "exp": lambda x, y: sympy.exp(x),
     "log": lambda x, y: sympy.log(x),
     # "log10": lambda x, y: sympy.log10(x),
@@ -75,16 +91,15 @@ MATH_FUNCTION_NODES_USING_SYMPY = {
     "atanh": lambda x, y: sympy.atanh(x),
     "sqrt": lambda x, y: sympy.sqrt(x),
     "abs": lambda x, y: sympy.Abs(x),
-    "neg": lambda x, y: -x,
 }
 
 MATH_FUNCTION_NODES_LIST = list(MATH_FUNCTION_NODES.keys())
 MATH_FUNCTION_INDICIES = [
     i + len(SYMBOL_INDICIES) for i in range(len(MATH_FUNCTION_NODES_LIST))
 ]
-MATH_FUNCTION_1_PARAM_INDICIES = MATH_FUNCTION_INDICIES[6:]
-MATH_FUNCTION_2_PARAM_INDICIES = MATH_FUNCTION_INDICIES[:6]
-MATH_FUNCTION_TRIGONOMETRIC_INDICIES = MATH_FUNCTION_INDICIES[6:-1]
+MATH_FUNCTION_1_PARAM_INDICIES = MATH_FUNCTION_INDICIES[4:]
+MATH_FUNCTION_2_PARAM_INDICIES = MATH_FUNCTION_INDICIES[:4]
+MATH_FUNCTION_TRIGONOMETRIC_INDICIES = MATH_FUNCTION_INDICIES[10:-1]
 MATH_FUNCTION_KEYS = list(MATH_FUNCTION_NODES.keys())
 
 # list of mathematical constants
@@ -94,8 +109,10 @@ MATH_CONSTANT_NODES = {
     "e": math.e,
     "one": 1,
     "negative_one": -1,
-    "half": Fraction(1, 2),
-    "three_quarters": Fraction(3, 4),
+    "half": 0.5,
+    "three_quarters": 3 / 4
+    # "half": Fraction(1, 2),
+    # "three_quarters": Fraction(3, 4),
 }
 MATH_CONSTANT_NODES_LIST = list(MATH_CONSTANT_NODES.keys())
 MATH_CONSTANT_IGNORE_KEYS = ["one", "half", "three_quarters"]
@@ -290,6 +307,7 @@ def convert_array_to_binary_tree(
         elif index == 3:
             return c
     if node_type == "math_func":
+        is_two_param = index in MATH_FUNCTION_2_PARAM_INDICIES
         if 2 * array_index + 2 >= len(array):
             raise Exception(
                 "there should be no nodes on leaf nodes {VARIABLE_INDICIES} {array_index}".format(
@@ -310,17 +328,24 @@ def convert_array_to_binary_tree(
             array_index=2 * array_index + 1,
             use_sympy=use_sympy,
         )
-        node2 = convert_array_to_binary_tree(
-            array,
-            x,
-            a,
-            b,
-            c,
-            symbols,
-            array_index=2 * array_index + 2,
-            use_sympy=use_sympy,
-        )
-        return node(node1, node2)
+        if is_two_param:
+            node2 = convert_array_to_binary_tree(
+                array,
+                x,
+                a,
+                b,
+                c,
+                symbols,
+                array_index=2 * array_index + 2,
+                use_sympy=use_sympy,
+            )
+            if node1 is None or node2 is None:
+                print(node1, node2)
+            try:
+                return node(node1, node2)
+            except Exception as err:
+                print(err)
+        return node(node1, None)
     if node_type in ["math_const", "astro_const"]:
         return node
     if node_type == "custom_var":
