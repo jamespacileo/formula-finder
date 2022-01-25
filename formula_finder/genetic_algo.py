@@ -8,11 +8,15 @@ from formula_finder.algo_tree_helpers import convert_array_nodes_to_keys
 from formula_finder.binary_tree import (
     number_of_nodes_for_tree,
 )
+from formula_finder.generation import (
+    formula_crossover,
+    formula_mutation,
+    generate_population,
+)
 from formula_finder.genetic_helpers import (
     custom_crossover_func,
     custom_mutation,
     fitness_function_factory,
-    generate_population,
 )
 
 mutation_percent_genes = 10
@@ -20,15 +24,15 @@ mutation_percent_genes = 10
 
 def run_genetic_algo(
     comparison_func: Callable,
-    total_population_size: int = 30,
-    tree_depth: int = 3,
-    num_generations: int = 1000,
+    total_population_size: int = 1000,
+    tree_depth: int = 4,
+    num_generations: int = 100,
     xdata: List[int] = np.linspace(1, 10, 10),
     customParametersData: dict = None,
 ):
-    num_genes = number_of_nodes_for_tree(tree_depth)
-    population = generate_population(total_population_size, num_genes)
-    num_parents_mating = math.floor(total_population_size / 20)
+    num_genes = number_of_nodes_for_tree(tree_depth - 1)
+    population = generate_population(100, num_genes)
+    num_parents_mating = 50  # math.floor(total_population_size / 20)
 
     sol_per_pop = 50
 
@@ -36,10 +40,10 @@ def run_genetic_algo(
     init_range_high = 20
 
     parent_selection_type = "sss"
-    keep_parents = -1
+    keep_parents = -1  # math.floor(total_population_size / 20)
 
-    crossover_type = "single_point"
-    mutation_type = custom_mutation
+    crossover_type = formula_crossover
+    mutation_type = formula_mutation
 
     fitness_function = fitness_function_factory(
         comparison_func, xdata, customParametersData
@@ -56,6 +60,12 @@ def run_genetic_algo(
         t.set_description_str(
             f"Fitness: {best_solution[1]} {convert_array_nodes_to_keys(best_solution[0])}"
         )
+        if ga_instance.best_solution()[1] == np.Inf:
+            return "stop"
+
+    # def func_generation(ga_instance):
+    #     if ga_instance.best_solution()[1] == np.Inf:
+    #         return "stop"
 
     ga_instance = pygad.GA(
         initial_population=population,

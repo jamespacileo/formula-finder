@@ -20,7 +20,9 @@ def convert_array_nodes_to_keys(tree: List):
         # print("node index", index, node_index)
         node_type, node = get_node_from_index(node_index)
         # print(node_index, node_type, node)
-        if node_type == "symbol":
+        if node_type == "blank":
+            alpha_tree.append("")
+        elif node_type == "symbol":
             alpha_tree.append(node)
         elif node_type == "math_func":
             # print(list(math_function_nodes.keys()), node_index, node_index - len(symbol_indicies))

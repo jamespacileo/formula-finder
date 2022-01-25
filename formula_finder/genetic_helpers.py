@@ -1,7 +1,16 @@
+import math
 import random
 from scipy.optimize import curve_fit
 import numpy as np
-from formula_finder.binary_tree import number_of_leaf_nodes_for_tree
+from formula_finder.binary_tree import (
+    non_blank_node_indicies,
+    number_of_leaf_nodes_for_tree,
+)
+from formula_finder.common_formulas import LIST_OF_COMMON_FORMULAS_AS_TREE
+from formula_finder.simplify import (
+    FormulaIsNotAllowedToBeANumber,
+    simplify_formula_and_add_padding,
+)
 from formula_finder.validation import ensure_tree_endings_end_with_constant
 
 from formula_finder.variables import (
@@ -16,19 +25,19 @@ from formula_finder.variables import (
 )
 
 
-def generate_population(total_population_size, gene_size):
+def generate_population(total_population_size, gene_size, use_common_formulas=True):
     # Generates a population of trees, where at least 1 leaf is x, and all leaves are either a symbol, math constant or astro constant
-    population = []
+    population = [] + LIST_OF_COMMON_FORMULAS_AS_TREE
     tree_length = gene_size
     tree_leaf_count = number_of_leaf_nodes_for_tree(gene_size)
     while len(population) < total_population_size:
         # Generate a random tree where the nodes can be any index in the list of all_indicies
         # and the leaves must be variable indicies
         tree_nodes = np.random.choice(
-            ALL_INDICIES, size=tree_length - tree_leaf_count, replace=False
+            ALL_INDICIES, size=tree_length - tree_leaf_count, replace=True
         )
         tree_leaves = np.random.choice(
-            VARIABLE_INDICIES, size=tree_leaf_count, replace=False
+            VARIABLE_INDICIES, size=tree_leaf_count, replace=True
         )
         tree = np.concatenate((tree_nodes, tree_leaves))
         # Ensure that the tree has at least one leaf that is x
@@ -44,8 +53,7 @@ def generate_population(total_population_size, gene_size):
         #     raise Exception("Should not generate invalid population")
         population.append(tree)
 
-        if len(population) == total_population_size:
-            return population
+    return population
 
 
 def fitness_function_factory(comparison_func, xdata, customParameterData: dict = {}):
@@ -53,6 +61,12 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
         variables = [
             random.choice(customParameterData[key]) for key in customParameterData
         ]
+
+        has_x = len([i for i in solution_array if i == 0]) > 0
+
+        # does solution array contain 0?
+        if not has_x:
+            return 0
 
         def func_to_fit(data, a, b, c):
             x, dim2, dim3 = data[0], data[1], data[2]
@@ -77,15 +91,17 @@ def fitness_function_factory(comparison_func, xdata, customParameterData: dict =
             )
             ydata = func_to_fit(data, *ptot)
 
-            if not ensure_tree_endings_end_with_constant(solution_array):
-                return 0
+            # if not ensure_tree_endings_end_with_constant(solution_array):
+            #     return 0
 
             node_endings = get_ending_indicies(solution_array)
             node_ending_count = len(node_endings)
 
-            diff = np.sum(np.abs(ydata - comparison_func(data)) ** 2)
+            non_blanks = non_blank_node_indicies(solution_array)
+
+            diff = np.sum(np.abs(ydata - comparison_func(data)) ** 2) * len(non_blanks)
             if diff == 0:
-                return 10e5 - node_ending_count
+                return np.Inf
             fitness = 1 / diff
 
             # return np.sqrt(np.diag(pcov))
@@ -111,8 +127,24 @@ def custom_mutation(offspring, ga_instance):
     for chromosome_idx in range(offspring.shape[0]):
         for retry_count in range(10):
             tree = offspring[chromosome_idx]
-
-            number_of_mutations = np.random.randint(1, 10)
+            try:
+                tree = simplify_formula_and_add_padding(
+                    tree, fail_formulas_that_are_numbers=True
+                )
+            except (
+                FormulaIsNotAllowedToBeANumber,
+                IndexError,
+                ZeroDivisionError,
+            ) as err:
+                tree = random.choice(LIST_OF_COMMON_FORMULAS_AS_TREE)
+            except TypeError as err:
+                # TODO: Handle specific cases
+                tree = random.choice(LIST_OF_COMMON_FORMULAS_AS_TREE)
+            # try:
+            #     tree = simplify_formula_and_add_padding(tree)
+            # except:
+            #     pass
+            number_of_mutations = np.random.randint(1, 2)
             chromosome = offspring[chromosome_idx]
             for _ in range(number_of_mutations):
                 tree_leaf_count = number_of_leaf_nodes_for_tree(len(tree))

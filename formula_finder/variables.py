@@ -6,6 +6,7 @@ from astropy import constants as c
 from astropy import units as u
 from typing import List
 import sympy
+from fractions import Fraction
 
 from formula_finder.binary_tree import (
     depth_of_tree,
@@ -18,9 +19,9 @@ SYMBOL_NODES = {
     "x": "x",
     "a": "a",
     "b": "b",
-    "c": "c",
+    # "c": "c",
 }
-SYMBOL_NODES_LIST = ["x", "a", "b", "c"]
+SYMBOL_NODES_LIST = list(SYMBOL_NODES.keys())
 SYMBOL_INDICIES = list(range(len(SYMBOL_NODES_LIST)))
 SYMBOL_KEYS = list(SYMBOL_NODES.keys())
 
@@ -30,16 +31,22 @@ MATH_FUNCTION_NODES = {
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
     "mod": lambda x, y: x % y,
-    "power": lambda x, y: x ** y,
+    "square": lambda x: x ** 2,
+    "cube": lambda x: x ** 3,
+    # "power": lambda x, y: x ** y,
     "exp": lambda x, y: np.exp(x),
     "log": lambda x, y: np.log(x),
     # "log10": lambda x, y: np.log10(x),
     "sin": lambda x, y: np.sin(x),
     "cos": lambda x, y: np.cos(x),
+    "cosh": lambda x, y: np.cosh(x),
+    "sinh": lambda x, y: np.sinh(x),
     "tan": lambda x, y: np.tan(x),
+    "cot": lambda x, y: np.arctan(x),
     "asin": lambda x, y: np.arcsin(x),
     "acos": lambda x, y: np.arccos(x),
     "atan": lambda x, y: np.arctan(x),
+    "atanh": lambda x, y: np.arctanh(x),
     "sqrt": lambda x, y: np.sqrt(x),
     "abs": lambda x, y: np.abs(x),
     "neg": lambda x, y: -x,
@@ -50,16 +57,22 @@ MATH_FUNCTION_NODES_USING_SYMPY = {
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
     "mod": lambda x, y: x % y,
-    "power": lambda x, y: x ** y,
+    "square": lambda x: x ** 2,
+    "cube": lambda x: x ** 3,
+    # "power": lambda x, y: x ** y,
     "exp": lambda x, y: sympy.exp(x),
     "log": lambda x, y: sympy.log(x),
     # "log10": lambda x, y: sympy.log10(x),
     "sin": lambda x, y: sympy.sin(x),
     "cos": lambda x, y: sympy.cos(x),
+    "cosh": lambda x, y: sympy.cosh(x),
+    "sinh": lambda x, y: sympy.sinh(x),
     "tan": lambda x, y: sympy.tan(x),
+    "cot": lambda x, y: sympy.cot(x),
     "asin": lambda x, y: sympy.asin(x),
     "acos": lambda x, y: sympy.acos(x),
     "atan": lambda x, y: sympy.atan(x),
+    "atanh": lambda x, y: sympy.atanh(x),
     "sqrt": lambda x, y: sympy.sqrt(x),
     "abs": lambda x, y: sympy.Abs(x),
     "neg": lambda x, y: -x,
@@ -69,7 +82,9 @@ MATH_FUNCTION_NODES_LIST = list(MATH_FUNCTION_NODES.keys())
 MATH_FUNCTION_INDICIES = [
     i + len(SYMBOL_INDICIES) for i in range(len(MATH_FUNCTION_NODES_LIST))
 ]
+MATH_FUNCTION_1_PARAM_INDICIES = MATH_FUNCTION_INDICIES[6:]
 MATH_FUNCTION_2_PARAM_INDICIES = MATH_FUNCTION_INDICIES[:6]
+MATH_FUNCTION_TRIGONOMETRIC_INDICIES = MATH_FUNCTION_INDICIES[6:-1]
 MATH_FUNCTION_KEYS = list(MATH_FUNCTION_NODES.keys())
 
 # list of mathematical constants
@@ -77,12 +92,18 @@ MATH_FUNCTION_KEYS = list(MATH_FUNCTION_NODES.keys())
 MATH_CONSTANT_NODES = {
     "pi": math.pi,
     "e": math.e,
+    "one": 1,
+    "negative_one": -1,
+    "half": Fraction(1, 2),
+    "three_quarters": Fraction(3, 4),
 }
 MATH_CONSTANT_NODES_LIST = list(MATH_CONSTANT_NODES.keys())
+MATH_CONSTANT_IGNORE_KEYS = ["one", "half", "three_quarters"]
 MATH_CONSTANT_INDICIES = [
     i + len(SYMBOL_INDICIES) + len(MATH_FUNCTION_INDICIES)
     for i in range(len(MATH_CONSTANT_NODES_LIST))
 ]
+MATH_CONSTANT_ALLOWED = MATH_CONSTANT_INDICIES[:2]
 MATH_CONSTANT_KEYS = list(MATH_CONSTANT_NODES.keys())
 
 # list of astropy constants
@@ -113,6 +134,7 @@ CUSTOM_VARIABLES_INDICIES = [
 ]
 CUSTOM_VARIABLES_KEYS = list(CUSTOM_VARIABLE_NODES.keys())
 
+
 ALL_INDICIES = (
     SYMBOL_INDICIES
     + MATH_FUNCTION_INDICIES
@@ -126,6 +148,9 @@ VARIABLE_INDICIES = (
     + ASTRO_CONSTANT_INDICIES
     + CUSTOM_VARIABLES_INDICIES
 )
+
+REQUIRED_VARIABLE_INDICIES = [0] + CUSTOM_VARIABLES_INDICIES
+NON_REQUIRED_VARIABLE_INDICIES = SYMBOL_INDICIES[1:] + MATH_CONSTANT_ALLOWED
 
 NODE_KEY_TO_INDEX = {}
 
@@ -168,6 +193,7 @@ def update_indicies():
     global CUSTOM_VARIABLES_KEYS
     global SYMBOL_INDICIES
     global SYMBOL_KEYS
+    global REQUIRED_VARIABLE_INDICIES
 
     CUSTOM_VARIABLES_INDICIES = [
         i
@@ -192,6 +218,8 @@ def update_indicies():
         + CUSTOM_VARIABLES_INDICIES
     )
 
+    REQUIRED_VARIABLE_INDICIES = [0] + CUSTOM_VARIABLES_INDICIES
+
     build_node_key_to_index_mapping()
 
 
@@ -206,6 +234,8 @@ def get_node_from_index(node_index, use_sympy=False):
     """
     Returns a node from a given index
     """
+    if node_index == -1:
+        return "blank", " "
     if node_index < len(SYMBOL_NODES_LIST):
         return "symbol", SYMBOL_NODES_LIST[node_index]
     node_index -= len(SYMBOL_NODES_LIST)
@@ -271,10 +301,24 @@ def convert_array_to_binary_tree(
         # print(len(array), array, array_index, 2*array_index+2, 2*array_index+2 >= len(array))
 
         node1 = convert_array_to_binary_tree(
-            array, x, a, b, c, symbols, array_index=2 * array_index + 1
+            array,
+            x,
+            a,
+            b,
+            c,
+            symbols,
+            array_index=2 * array_index + 1,
+            use_sympy=use_sympy,
         )
         node2 = convert_array_to_binary_tree(
-            array, x, a, b, c, symbols, array_index=2 * array_index + 2
+            array,
+            x,
+            a,
+            b,
+            c,
+            symbols,
+            array_index=2 * array_index + 2,
+            use_sympy=use_sympy,
         )
         return node(node1, node2)
     if node_type in ["math_const", "astro_const"]:

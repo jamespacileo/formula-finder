@@ -6,7 +6,7 @@ import warnings
 # sys.path.append("/home/james/Projects/Astrophysics/formula_finder/")
 
 import numpy as np
-
+import math
 
 __version__ = "0.1.0"
 
@@ -14,8 +14,8 @@ __version__ = "0.1.0"
 def main(
     comparison_func: Callable = None,
     customParametersData: dict = None,
-    total_population_size: int = 30,
-    tree_depth: int = 3,
+    total_population_size: int = 1000,
+    tree_depth: int = 4,
     num_generations: int = 10000,
     xdata: List[int] = np.linspace(1, 10, 10),
 ):
@@ -30,11 +30,14 @@ def main(
         return c.G.value * (m1 * m2) / np.power(x, 2)
 
     def default_comparison_func(data):
+        return math.pi + np.power(data[0], 2) + 5 * data[0]
+
+    def default_comparison_func(data):
         return 1 / np.power(data[0], 2)
 
     defaultCustomParametersData = {
-        "m1": np.linspace(0.8, 1.2, 10) * c.M_sun.value,
-        "m2": np.linspace(0.8, 1.2, 10) * c.M_earth.value,
+        # "m1": np.linspace(0.8, 1.2, 10) * c.M_sun.value,
+        # "m2": np.linspace(0.8, 1.2, 10) * c.M_earth.value,
     }
     xdata = np.linspace(0.8, 1.3, 10) * 14e9
 

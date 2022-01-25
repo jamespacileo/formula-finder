@@ -1,8 +1,9 @@
 import sympy
-import math
+import numpy as np
 from formula_finder.algo_tree_helpers import convert_array_nodes_to_keys
 from formula_finder.simplify import sympy_formula_to_tree
 from formula_finder.binary_tree import (
+    number_of_nodes_for_tree,
     pad_binary_tree_with_missing_nodes,
     print_binary_tree,
 )
@@ -11,23 +12,23 @@ x, a, b, c, m1, m2 = sympy.symbols("x a b c m1 m2")
 
 # list of commong math formulas
 
-linear_formula = a * x + b * c
+linear_formula = a * x
 
-square_formula = a * (x ** b) + c
+square_formula = a * (x * x)
 
 # cube_formula = a * (x ** 3) + b * (x ** 2) + c * x
 
-square_root_formula = a * sympy.sqrt(x) + b
+square_root_formula = a * sympy.sqrt(x)
 
-absolute_formula = a * sympy.Abs(x) + b
+absolute_formula = a * sympy.Abs(x)
 
-reciprocal_formula = a / x + b
+reciprocal_formula = a / x
 
-double_reciptocal_formula = a / (x ** b)
+double_reciptocal_formula = a / (x * x)
 
-logarithm_formula = a * sympy.log(x) + b
+logarithm_formula = a * sympy.log(x)
 
-exponential_formula = a * sympy.exp(x) + b
+exponential_formula = a * sympy.exp(x)
 
 
 # list of common trigonometric formulas
@@ -62,10 +63,20 @@ LIST_OF_COMMON_FORMULAS = [
     arc_tangent_formula,
 ]
 
+LIST_OF_COMMON_FORMULAS_AS_TREE = [
+    sympy_formula_to_tree(formula) for formula in LIST_OF_COMMON_FORMULAS
+]
+
+LIST_OF_COMMON_FORMULAS_AS_TREE = [
+    np.array(pad_binary_tree_with_missing_nodes(formula))
+    for formula in LIST_OF_COMMON_FORMULAS_AS_TREE
+]
+
 if __name__ == "__main__":
     # for each formula convert to tree and print
+    num = number_of_nodes_for_tree(4)
     for formula in LIST_OF_COMMON_FORMULAS:
-        print(formula)
+        # print(formula)
         tree = sympy_formula_to_tree(formula)
         tree = pad_binary_tree_with_missing_nodes(tree)
         print_binary_tree(convert_array_nodes_to_keys(tree))
