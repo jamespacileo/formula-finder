@@ -1,9 +1,9 @@
-Formula Finder - Alpha
+Formula Finder - v0.1 Alpha
 ==========================================
 
 Non-linear curve fitting through use of Genetic Algorithms.
 
-*Feed it the data* -> *Pull out the formula*
+:mag_right: *Feed it the data* -> *Pull out the formula* :sparkles:
 
 Why build this?
 ------------
