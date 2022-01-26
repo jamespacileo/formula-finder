@@ -16,13 +16,11 @@ from formula_finder.validation import ensure_tree_endings_end_with_constant
 
 from formula_finder.variables import (
     ALL_INDICIES,
-    CUSTOM_VARIABLES_INDICIES,
+    REQUIRED_VARIABLE_INDICIES,
     VARIABLE_INDICIES,
     NotEnoughEndingIndiciesException,
     add_x_and_custom_variables_to_ending_indicies,
-    add_x_to_ending_indicies,
     convert_array_to_binary_tree,
-    get_ending_indicies,
 )
 
 
@@ -58,7 +56,7 @@ def generate_population(total_population_size, gene_size, use_common_formulas=Tr
 
 
 def fitness_function_factory(
-    comparison_func, xdata, dim1_data=None, dim2_data=None, dimension_names=["x"]
+    comparison_func, xdata, dim1_data=None, dim2_data=None, num_dimensions=1
 ):
     if dim1_data is None:
         dim1_data = np.zeros(xdata.shape)
@@ -75,6 +73,13 @@ def fitness_function_factory(
             return 0
 
         if solution_array[0] in VARIABLE_INDICIES:
+            return 0
+
+        # REQUIRED_VARIABLE_INDICIES = get_required_variables_indicies()
+
+        required_variable_indicies = REQUIRED_VARIABLE_INDICIES[:num_dimensions]
+
+        if not all([i in solution_array for i in required_variable_indicies]):
             return 0
 
         def func_to_fit(data, a, b, c):
@@ -106,13 +111,14 @@ def fitness_function_factory(
             fitness = 1 / diff
 
             # return np.sqrt(np.diag(pcov))
-        # except RuntimeError:
-        #     fitness = 0
+        except RuntimeError as err:
+            # print(solution_array)
+            fitness = 0
         except ZeroDivisionError:
             # TODO: Double check that this is ok to have
             fitness = 0
-        # except TypeError:
-        #     fitness = 0
+        except TypeError:
+            fitness = 0
         # except Exception:
         #     fitness = 0
         # print("fitness", fitness)

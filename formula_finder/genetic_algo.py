@@ -10,8 +10,8 @@ from formula_finder.binary_tree import (
 )
 from formula_finder.common_formulas import LIST_OF_COMMON_FORMULAS_AS_TREE
 from formula_finder.generation import (
-    formula_crossover,
-    formula_mutation,
+    formula_crossover_factory,
+    formula_mutation_factory,
     generate_population,
 )
 from formula_finder.genetic_helpers import (
@@ -33,13 +33,15 @@ def run_genetic_algo(
     customParametersData: dict = None,
     dim1_data: List[int] = None,
     dim2_data: List[int] = None,
-    dimension_names: List[str] = None,
+    dimension_names: List[str] = ["x"],
 ):
+
     num_genes = number_of_nodes_for_tree(tree_depth - 1)
     # population = np.concatenate(
     #     [generate_population(100, num_genes), LIST_OF_COMMON_FORMULAS_AS_TREE]
     # )
-    population = generate_population(100, num_genes)
+    num_dimensions = len(dimension_names)
+    population = generate_population(100, num_genes, num_dimensions=num_dimensions)
     num_parents_mating = 50  # math.floor(total_population_size / 20)
 
     sol_per_pop = 50
@@ -47,14 +49,14 @@ def run_genetic_algo(
     init_range_low = 0
     init_range_high = 20
 
-    parent_selection_type = "sss"
+    parent_selection_type = "sus"
     keep_parents = -1  # math.floor(total_population_size / 20)
 
-    crossover_type = formula_crossover
-    mutation_type = formula_mutation
+    crossover_type = formula_crossover_factory(num_dimensions=num_dimensions)
+    mutation_type = formula_mutation_factory(num_dimensions=num_dimensions)
 
     fitness_function = fitness_function_factory(
-        comparison_func, xdata, dim1_data, dim2_data, dimension_names
+        comparison_func, xdata, dim1_data, dim2_data, num_dimensions=num_dimensions
     )
 
     t = tqdm(total=num_generations)
@@ -66,7 +68,7 @@ def run_genetic_algo(
         # print("Current best solution :", convert_array_nodes_to_keys(best_solution[0]))
         t.update(1)
         t.set_description_str(
-            f"Fitness: {best_solution[1]} {convert_array_nodes_to_keys(best_solution[0])}"
+            f"Fitness: {best_solution[1]}"  # {convert_array_nodes_to_keys(best_solution[0])}"
         )
         if ga_instance.best_solution()[1] == np.Inf:
             return "stop"
@@ -91,6 +93,7 @@ def run_genetic_algo(
         gene_type=int,
         mutation_percent_genes=mutation_percent_genes,
         callback_generation=callback_gen,
+        suppress_warnings=True,
     )
 
     ga_instance.run()

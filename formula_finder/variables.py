@@ -140,7 +140,7 @@ ASTRO_CONSTANT_INDICIES = [
 ]
 ASTRO_CONSTANT_KEYS = list(ASTRO_CONSTANT_NODES.keys())
 
-CUSTOM_VARIABLE_NODES = {}  # {"m1": "m1", "m2": "m2"}
+CUSTOM_VARIABLE_NODES = {"d2": "d2", "d3": "d3"}  # {"m1": "m1", "m2": "m2"}
 CUSTOM_VARIABLES_INDICIES = [
     i
     + len(SYMBOL_INDICIES)
@@ -166,10 +166,17 @@ VARIABLE_INDICIES = (
     + CUSTOM_VARIABLES_INDICIES
 )
 
+# LAST_INDEX = max(ASTRO_CONSTANT_INDICIES)
+
 REQUIRED_VARIABLE_INDICIES = [0] + CUSTOM_VARIABLES_INDICIES
 NON_REQUIRED_VARIABLE_INDICIES = SYMBOL_INDICIES[1:] + MATH_CONSTANT_ALLOWED
 
 NODE_KEY_TO_INDEX = {}
+
+
+# def get_required_variables_indicies():
+#     global REQUIRED_VARIABLE_INDICIES
+#     return REQUIRED_VARIABLE_INDICIES
 
 
 def get_index_from_node_key(key):
@@ -242,8 +249,7 @@ def update_indicies():
 
 def add_custom_variables(variables: List[str]):
     global CUSTOM_VARIABLE_NODES
-    for variable in variables:
-        CUSTOM_VARIABLE_NODES[variable] = variable
+    CUSTOM_VARIABLE_NODES = {variable: variable for variable in variables}
     update_indicies()
 
 

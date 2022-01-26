@@ -75,6 +75,12 @@ def pad_binary_tree_with_missing_nodes(tree: list):
     return tree + [0] * (number_of_nodes_needed - len(tree))
 
 
+def pad_tree_with_blank_nodes(tree: list):
+    depth = depth_of_tree(len(tree))
+    number_of_nodes_needed = number_of_nodes_for_tree(depth)
+    return tree + [-1] * (number_of_nodes_needed - len(tree))
+
+
 import numpy as np
 from formula_finder.binary_tree import number_of_nodes_for_tree
 
@@ -123,6 +129,7 @@ def randomly_cut_tree_at_depth(tree: list, depth: int):
 
 def tree_crossover(tree_1: list, tree_2: list):
     """ """
+    pass
 
 
 def cut_binary_tree_at_node(tree: list, node_index: int):
@@ -137,6 +144,9 @@ def cut_binary_tree_at_node(tree: list, node_index: int):
 def insert_child_into_parent_tree(
     child_tree: list, parent_tree: list, parent_index: int, child_index: int = 0
 ):
+    """
+    Inserts a child tree into a parent tree at a given node index
+    """
     new_tree = parent_tree.copy()
     new_tree[parent_index] = child_tree[child_index]
     if child_index * 2 + 2 < len(child_tree):
@@ -165,6 +175,12 @@ def append_tree_to_tree(tree: list, tree_to_append: list, node_index: int):
                 next_items_to_append.append(current_index * 2 + 2)
         items_to_append = next_items_to_append
     return new_tree
+
+
+def minimum_depth_for_n_leaf_nodes(num_leaf_nodes: int):
+    if num_leaf_nodes is 0:
+        return 0
+    return int(np.ceil(np.log2(num_leaf_nodes)))
 
 
 # cut_binary_tree_at_node([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14], 2)

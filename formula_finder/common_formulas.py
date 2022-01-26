@@ -5,6 +5,7 @@ from formula_finder.simplify import sympy_formula_to_tree
 from formula_finder.binary_tree import (
     number_of_nodes_for_tree,
     pad_binary_tree_with_missing_nodes,
+    pad_tree_with_blank_nodes,
     print_binary_tree,
 )
 
@@ -68,7 +69,7 @@ LIST_OF_COMMON_FORMULAS_AS_TREE = [
 ]
 
 LIST_OF_COMMON_FORMULAS_AS_TREE = [
-    np.array(pad_binary_tree_with_missing_nodes(formula))
+    np.array(pad_tree_with_blank_nodes(formula))
     for formula in LIST_OF_COMMON_FORMULAS_AS_TREE
 ]
 
