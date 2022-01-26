@@ -2,7 +2,7 @@ import math
 from typing import Callable, List
 import pygad
 import numpy as np
-from tqdm.notebook import trange, tqdm
+from tqdm import trange, tqdm
 from formula_finder.algo_tree_helpers import convert_array_nodes_to_keys
 
 from formula_finder.binary_tree import (
