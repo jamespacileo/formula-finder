@@ -14,6 +14,14 @@ To my surprise, this initial prototype is able to extrapolate a few known formul
 
 Hope you find this useful :)
 
+Main Future Plans
+-----------------
+
+- Add knowledge of dimensions to data (e.g. mass, length, time, etc) for better fitting
+- Add support for more complex functions
+- Improve config and test further mutation strategies
+- RNNs
+
 Examples
 ---------   
 
