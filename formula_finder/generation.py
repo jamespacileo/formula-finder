@@ -102,7 +102,7 @@ def generate_tree(
             required_variables_left,
         )
     elif action == "add_variable":
-        if required_variables_left is not None and len(required_variables_left) > 0:
+        if required_variables_left is not None and required_variables_left:
             choice = np.random.choice(required_variables_left)
             required_variables_left.remove(choice)
             tree[index] = choice
@@ -169,10 +169,9 @@ def prune_chromosome(tree: list):
     max_depth = depth_of_tree(max_index)
     tree_depth = depth_of_tree(len(tree))
     probability_of_pruning = (max_depth / tree_depth) ** 2
-    do_prune = np.random.choice(
+    if do_prune := np.random.choice(
         [True, False], p=[probability_of_pruning, 1 - probability_of_pruning]
-    )
-    if do_prune:
+    ):
         chosen_index = np.random.choice(available_indicies[1:])
         # print("Prune: Yes", chosen_index)
         tree, _ = cut_tree_at_node_index(tree, chosen_index)
@@ -264,10 +263,6 @@ def formula_mutation_factory(num_dimensions: int):
                 new_chromosome = prune_chromosome(new_chromosome)
             if action == "mutate":
                 new_chromosome = mutate_tree_node(new_chromosome, required_variables)
-            # if action == "scramble":
-            #     new_chromosome = scrable_variables(new_chromosome)
-            if action == "sandwhich":
-                pass
             if action == "replace_head":
                 new_chromosome = replace_random_variable_with_x(new_chromosome)
             if action == "complete_replace":

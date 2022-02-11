@@ -46,8 +46,7 @@ def cut_binary_tree_at_node(tree: list, node_index: int):
         for index in current_row:
             left_index = index * 2 + 1
             child_tree.append(left_index)
-            new_row.append(index * 2 + 1)
-            new_row.append(index * 2 + 2)
+            new_row.extend((index * 2 + 1, index * 2 + 2))
             highest_index = index * 2 + 2
         current_row = new_row
 
@@ -94,8 +93,7 @@ def list_of_tree_nodes_below_node(tree: list, node_index: int) -> list:
         for current_index in items_to_append:
             indicies_below_node.append(current_index)
             if current_index * 2 + 2 < len(tree):
-                next_items_to_append.append(current_index * 2 + 1)
-                next_items_to_append.append(current_index * 2 + 2)
+                next_items_to_append.extend((current_index * 2 + 1, current_index * 2 + 2))
         items_to_append = next_items_to_append
     return indicies_below_node
 
@@ -171,16 +169,13 @@ def append_tree_to_tree(tree: list, tree_to_append: list, node_index: int):
         for current_index in items_to_append:
             new_tree[current_index] = current_index
             if current_index * 2 + 2 < len(new_tree):
-                next_items_to_append.append(current_index * 2 + 1)
-                next_items_to_append.append(current_index * 2 + 2)
+                next_items_to_append.extend((current_index * 2 + 1, current_index * 2 + 2))
         items_to_append = next_items_to_append
     return new_tree
 
 
 def minimum_depth_for_n_leaf_nodes(num_leaf_nodes: int):
-    if num_leaf_nodes is 0:
-        return 0
-    return int(np.ceil(np.log2(num_leaf_nodes)))
+    return 0 if num_leaf_nodes is 0 else int(np.ceil(np.log2(num_leaf_nodes)))
 
 
 # cut_binary_tree_at_node([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14], 2)
