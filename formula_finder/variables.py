@@ -26,59 +26,39 @@ SYMBOL_INDICIES = list(range(len(SYMBOL_NODES_LIST)))
 SYMBOL_KEYS = list(SYMBOL_NODES.keys())
 
 MATH_FUNCTION_NODES = {
-    # "add": lambda x, y: np.add(x, y),
-    # "divide": lambda x, y: np.divide(x, y),
-    # "multiply": lambda x, y: np.multiply(x, y),
-    # "subtract": lambda x, y: np.subtract(x, y),
-    # # "mod": lambda x, y: x % y,
     "add": lambda x, y: x + y,
     "divide": lambda x, y: x / y,
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
-    # "mod": lambda x, y: x % y,
-    # "square": lambda x, y: np.power(x, 2),
-    # "cube": lambda x, y: np.power(x, 3),
-    # "neg": lambda x, y: np.negative(x),
-    # "add": lambda x, y: np.add(x, y),
-    # "divide": lambda x, y: np.divide(x, y),
-    # "multiply": lambda x, y: np.multiply(x, y),
-    # "subtract": lambda x, y: np.subtract(x, y),
-    # "mod": lambda x, y: x % y,
-    "square": lambda x, y: np.power(x, 2),  # 7
-    "cube": lambda x, y: np.power(x, 3),  # 8
-    "neg": lambda x, y: np.negative(x),  # 9
-    # "power": lambda x, y: x ** y,
-    "sqrt": lambda x, y: np.sqrt(x),  # 10
+    "square": lambda x, y: np.power(x, 2),
+    "cube": lambda x, y: np.power(x, 3),
+    "neg": lambda x, y: np.negative(x),
     "exp": lambda x, y: np.exp(x),
-    "log": lambda x, y: np.log(x),  # 12
-    # "log10": lambda x, y: np.log10(x),
-    "sin": lambda x, y: np.sin(x),  #
+    "log": lambda x, y: np.log(x),
+    "sin": lambda x, y: np.sin(x),
     "cos": lambda x, y: np.cos(x),
-    "cosh": lambda x, y: np.cosh(x),  # 15
+    "cosh": lambda x, y: np.cosh(x),
     "sinh": lambda x, y: np.sinh(x),
     "tan": lambda x, y: np.tan(x),
     "cot": lambda x, y: np.arctan(x),
-    "asin": lambda x, y: np.arcsin(x),  # 19
+    "asin": lambda x, y: np.arcsin(x),
     "acos": lambda x, y: np.arccos(x),
-    "atan": lambda x, y: np.arctan(x),  # 21
+    "atan": lambda x, y: np.arctan(x),
     "atanh": lambda x, y: np.arctanh(x),
     "sqrt": lambda x, y: np.sqrt(x),
     "abs": lambda x, y: np.abs(x),
 }
+
 MATH_FUNCTION_NODES_USING_SYMPY = {
     "add": lambda x, y: x + y,
     "divide": lambda x, y: x / y,
     "multiply": lambda x, y: x * y,
     "subtract": lambda x, y: x - y,
-    # "mod": lambda x, y: x % y,
     "square": lambda x, y: x ** 2,
     "cube": lambda x, y: x ** 3,
     "neg": lambda x, y: -x,
-    # "power": lambda x, y: x ** y,
-    "sqrt": lambda x, y: sympy.sqrt(x),
     "exp": lambda x, y: sympy.exp(x),
     "log": lambda x, y: sympy.log(x),
-    # "log10": lambda x, y: sympy.log10(x),
     "sin": lambda x, y: sympy.sin(x),
     "cos": lambda x, y: sympy.cos(x),
     "cosh": lambda x, y: sympy.cosh(x),
@@ -92,6 +72,7 @@ MATH_FUNCTION_NODES_USING_SYMPY = {
     "sqrt": lambda x, y: sympy.sqrt(x),
     "abs": lambda x, y: sympy.Abs(x),
 }
+
 
 MATH_FUNCTION_NODES_LIST = list(MATH_FUNCTION_NODES.keys())
 MATH_FUNCTION_INDICIES = [

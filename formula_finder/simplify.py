@@ -78,9 +78,12 @@ def sympy_formula_to_tree(
         raise FormulaIsNotAllowedToBeANumber(formula.__str__())
 
     name = formula.func.__name__
-    if fail_formulas_that_are_numbers and depth == 0:
-        if name == "Integer" or name == "Float" or name == "Zero" or name == "Rational":
-            raise FormulaIsNotAllowedToBeANumber(formula.__str__())
+    if (
+        fail_formulas_that_are_numbers
+        and depth == 0
+        and name in ["Integer", "Float", "Zero", "Rational"]
+    ):
+        raise FormulaIsNotAllowedToBeANumber(formula.__str__())
 
     if name == "Add":
         first_arg, second_arg, *other_args = formula.args
@@ -127,23 +130,17 @@ def sympy_formula_to_tree(
         if first_arg_is_divide:
             tree[index] = NODE_KEY_TO_INDEX["divide"]
             divide_arg = first_arg.args[0]
-            if other_args:
-                left_arg = Mul(second_arg, *other_args)
-            else:
-                left_arg = second_arg
+            left_arg = Mul(second_arg, *other_args) if other_args else second_arg
             sympy_formula_to_tree(left_arg, tree, index * 2 + 1, depth + 1)
             sympy_formula_to_tree(divide_arg, tree, index * 2 + 2, depth + 1)
-            # second_arg = formula.args[1]
+                    # second_arg = formula.args[1]
         elif second_arg_is_divide:
             tree[index] = NODE_KEY_TO_INDEX["divide"]
             divide_arg = second_arg.args[0]
-            if other_args:
-                left_arg = Mul(first_arg, *other_args)
-            else:
-                left_arg = first_arg
+            left_arg = Mul(first_arg, *other_args) if other_args else first_arg
             sympy_formula_to_tree(left_arg, tree, index * 2 + 1, depth + 1)
             sympy_formula_to_tree(divide_arg, tree, index * 2 + 2, depth + 1)
-            # second_arg = second_arg.args[]
+                    # second_arg = second_arg.args[]
         elif first_arg_is_negative:
             tree[index] = NODE_KEY_TO_INDEX["neg"]
             left_arg = second_arg
@@ -157,10 +154,7 @@ def sympy_formula_to_tree(
             # sympy_formula_to_tree(divide_arg, tree, index * 2 + 2, depth + 1)
         else:
             tree[index] = NODE_KEY_TO_INDEX["multiply"]
-            if other_args:
-                right_arg = Mul(second_arg, *other_args)
-            else:
-                right_arg = second_arg
+            right_arg = Mul(second_arg, *other_args) if other_args else second_arg
             sympy_formula_to_tree(first_arg, tree, index * 2 + 1, depth + 1)
 
     elif name == "Pow":
@@ -233,21 +227,13 @@ def sympy_formula_to_tree(
         tree[index] = NODE_KEY_TO_INDEX["negative_one"]
     elif name == "Half":
         tree[index] = NODE_KEY_TO_INDEX["half"]
-    # elif name == "Float" or name == "Integer" or name == "One":
-    #     tree[index] = NODE_KEY_TO_INDEX["c"]
-    # raise FormulaContainsAnUnknownFloat(f"{formula.__str__()}")
-    # elif name == "Rational":
-    #     # TODO handle rationals as constants
-    #     tree[index] = NODE_KEY_TO_INDEX["c"]
     elif name == "Rational" and formula == Fraction(3, 4):
         tree[index] = NODE_KEY_TO_INDEX["three_quarters"]
-    elif name == "ComplexInfinity" or name == "Infinity" or name == "NegativeInfinity":
+    elif name in ["ComplexInfinity", "Infinity", "NegativeInfinity"]:
         tree[index] = NODE_KEY_TO_INDEX["c"]
-    # elif name == "Half":
-    #     tree[index] = NODE_KEY_TO_INDEX["c"]
     elif name == "Zero":
         tree[index] = NODE_KEY_TO_INDEX["c"]
-    elif name == "Float" or name == "Integer" or name == "Rational":
+    elif name in ["Float", "Integer", "Rational"]:
         tree[index] = NODE_KEY_TO_INDEX["c"]
     elif name == "Pi":
         tree[index] = NODE_KEY_TO_INDEX["pi"]
@@ -255,7 +241,7 @@ def sympy_formula_to_tree(
         tree[index] = NODE_KEY_TO_INDEX["e"]
     elif name == "re":
         sympy_formula_to_tree(formula.args[0], tree, index, depth)
-    elif name == "ImaginaryUnit" or name == "im":
+    elif name in ["ImaginaryUnit", "im"]:
         # TODO Add imginary units
         tree[index] = NODE_KEY_TO_INDEX["c"]
     elif name == "NaN":
@@ -264,7 +250,6 @@ def sympy_formula_to_tree(
         tree[index] = NODE_KEY_TO_INDEX["c"]
     else:
         print(name)
-        pass
     # for arg in formula.args:
     #     if arg.is_Number:
     #         tree.append(arg)
